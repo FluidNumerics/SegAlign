@@ -3,6 +3,7 @@
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/scan.h>
+#include <thrust/sort.h>
 #include <thrust/unique.h>
 #include "cuda_utils.h"
 #include "parameters.h"
