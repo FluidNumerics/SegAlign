@@ -5,7 +5,8 @@
 #include <thrust/scan.h>
 #include <thrust/sort.h>
 #include <thrust/unique.h>
-#include "cuda_utils.h"
+#include "gpu.h"
+#include "gpu_utils.h"
 #include "parameters.h"
 #include "seed_filter.h"
 #include "seed_filter_interface.h"
@@ -369,7 +370,7 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp = __shfl_up_sync(0xFFFFFFFF, thread_score, offset);
+                temp = SHFL_UP(thread_score, offset);
 
                 if(lane_id >= offset){
                     thread_score += temp;
@@ -391,8 +392,8 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp = __shfl_up_sync(0xFFFFFFFF, max_thread_score, offset);
-                temp_pos = __shfl_up_sync(0xFFFFFFFF, max_pos, offset);
+                temp = SHFL_UP(max_thread_score, offset);
+                temp_pos = SHFL_UP(max_pos, offset);
 
                 if(lane_id >= offset){
                     if(temp >= max_thread_score){
@@ -407,7 +408,7 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp_xdrop_done = __shfl_up_sync(0xFFFFFFFF, xdrop_done, offset);
+                temp_xdrop_done = SHFL_UP(xdrop_done, offset);
 
                 if(lane_id >= offset){
                     xdrop_done |= temp_xdrop_done;
@@ -422,8 +423,8 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp = __shfl_up_sync(0xFFFFFFFF, max_thread_score, offset);
-                temp_pos = __shfl_up_sync(0xFFFFFFFF, max_pos, offset);
+                temp = SHFL_UP(max_thread_score, offset);
+                temp_pos = SHFL_UP(max_pos, offset);
 
                 if(lane_id >= offset){
                     if(temp >= max_thread_score){
@@ -526,7 +527,7 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp = __shfl_up_sync(0xFFFFFFFF, thread_score, offset);
+                temp = SHFL_UP(thread_score, offset);
 
                 if(lane_id >= offset){
                     thread_score += temp;
@@ -546,8 +547,8 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp = __shfl_up_sync(0xFFFFFFFF, max_thread_score, offset);
-                temp_pos = __shfl_up_sync(0xFFFFFFFF, max_pos, offset);
+                temp = SHFL_UP(max_thread_score, offset);
+                temp_pos = SHFL_UP(max_pos, offset);
 
                 if(lane_id >= offset){
                     if(temp >= max_thread_score){
@@ -562,7 +563,7 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp_xdrop_done = __shfl_up_sync(0xFFFFFFFF, xdrop_done, offset);
+                temp_xdrop_done = SHFL_UP(xdrop_done, offset);
 
                 if(lane_id >= offset){
                     xdrop_done |= temp_xdrop_done;
@@ -577,8 +578,8 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
 
 #pragma unroll
             for (int offset = 1; offset < warp_size; offset = offset << 1){
-                temp = __shfl_up_sync(0xFFFFFFFF, max_thread_score, offset);
-                temp_pos = __shfl_up_sync(0xFFFFFFFF, max_pos, offset);
+                temp = SHFL_UP(max_thread_score, offset);
+                temp_pos = SHFL_UP(max_pos, offset);
 
                 if(lane_id >= offset){
                     if(temp >= max_thread_score){
@@ -647,7 +648,7 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
             for(int i = 0; i < 4; i++){
 #pragma unroll
                 for (int offset = 1; offset < warp_size; offset = offset << 1){
-                    count[i] += __shfl_up_sync(0xFFFFFFFF, count[i], offset);
+                    count[i] += SHFL_UP(count[i], offset);
                 }
             }
             __syncwarp();
@@ -748,15 +749,15 @@ std::vector<segmentPair> SeedAndFilter (std::vector<uint64_t> seed_offset_vector
     available_gpus.pop_back();
     locker.unlock();
 
-    check_cuda_setDevice(g, "SeedAndFilter");
+    check_gpu_setDevice(g, "SeedAndFilter");
 
-    check_cuda_memcpy((void*)d_seed_offsets[g], (void*)tmp_offset, num_seeds*sizeof(uint64_t), cudaMemcpyHostToDevice, "seed_offsets");
+    check_gpu_memcpy((void*)d_seed_offsets[g], (void*)tmp_offset, num_seeds*sizeof(uint64_t), cudaMemcpyHostToDevice, "seed_offsets");
 
     find_num_hits <<<MAX_BLOCKS, MAX_THREADS>>> (num_seeds, d_index_table[g], d_seed_offsets[g], d_hit_num_array[g]);
 
     thrust::inclusive_scan(d_hit_num_vec[g].begin(), d_hit_num_vec[g].begin() + num_seeds, d_hit_num_vec[g].begin());
 
-    check_cuda_memcpy((void*)&num_hits, (void*)(d_hit_num_array[g]+num_seeds-1), sizeof(uint64_t), cudaMemcpyDeviceToHost, "num_hits");
+    check_gpu_memcpy((void*)&num_hits, (void*)(d_hit_num_array[g]+num_seeds-1), sizeof(uint64_t), cudaMemcpyDeviceToHost, "num_hits");
     
     uint32_t num_iter;
     uint64_t iter_hit_limit;
@@ -812,7 +813,7 @@ std::vector<segmentPair> SeedAndFilter (std::vector<uint64_t> seed_offset_vector
 
 	    thrust::inclusive_scan(d_done_vec[g].begin(), d_done_vec[g].begin() + iter_num_hits, d_done_vec[g].begin());
 
-	    check_cuda_memcpy((void*)&num_anchors[i], (void*)(d_done[g]+iter_num_hits-1), sizeof(uint32_t), cudaMemcpyDeviceToHost, "num_anchors");
+	    check_gpu_memcpy((void*)&num_anchors[i], (void*)(d_done[g]+iter_num_hits-1), sizeof(uint32_t), cudaMemcpyDeviceToHost, "num_anchors");
 
 	    if(num_anchors[i] > 0){
 		    compress_output <<<MAX_BLOCKS, MAX_THREADS>>>(d_done[g], d_hsp[g], d_hsp_reduced[g], iter_num_hits, rev, ref_len);
@@ -835,7 +836,7 @@ std::vector<segmentPair> SeedAndFilter (std::vector<uint64_t> seed_offset_vector
 
 		    h_hsp[i] = (segmentPair*) calloc(num_anchors[i], sizeof(segmentPair));
 
-		    check_cuda_memcpy((void*)h_hsp[i], (void*)d_hsp_reduced[g], num_anchors[i]*sizeof(segmentPair), cudaMemcpyDeviceToHost, "hsp_output");
+		    check_gpu_memcpy((void*)h_hsp[i], (void*)d_hsp_reduced[g], num_anchors[i]*sizeof(segmentPair), cudaMemcpyDeviceToHost, "hsp_output");
 	    }
 
 	    start_seed_index = limit_pos[i]+1;
@@ -925,13 +926,13 @@ void InitializeProcessor (bool transition, uint32_t WGA_CHUNK, uint32_t input_se
 
     for(int g = 0; g < NUM_DEVICES; g++){
 
-        check_cuda_setDevice(g, "InitializeProcessor");
+        check_gpu_setDevice(g, "InitializeProcessor");
 
-        check_cuda_malloc((void**)&d_sub_mat[g], NUC2*sizeof(int), "sub_mat"); 
+        check_gpu_malloc((void**)&d_sub_mat[g], NUC2*sizeof(int), "sub_mat"); 
 
-        check_cuda_memcpy((void*)d_sub_mat[g], (void*)sub_mat, NUC2*sizeof(int), cudaMemcpyHostToDevice, "sub_mat");
+        check_gpu_memcpy((void*)d_sub_mat[g], (void*)sub_mat, NUC2*sizeof(int), cudaMemcpyHostToDevice, "sub_mat");
 
-        check_cuda_malloc((void**)&d_seed_offsets[g], MAX_SEEDS*sizeof(uint64_t), "seed_offsets");
+        check_gpu_malloc((void**)&d_seed_offsets[g], MAX_SEEDS*sizeof(uint64_t), "seed_offsets");
 
         d_hit_num_vec.emplace_back(MAX_SEEDS, 0);
         d_hit_num_array[g] = thrust::raw_pointer_cast(d_hit_num_vec.at(g).data());
@@ -953,9 +954,9 @@ void SendQueryWriteRequest (){
 
     for(int g = 0; g < NUM_DEVICES; g++){
 
-        check_cuda_setDevice(g, "SendQueryWriteRequest");
+        check_gpu_setDevice(g, "SendQueryWriteRequest");
 
-        check_cuda_malloc((void**)&d_seq_rc[g], ref_len*sizeof(char), "seq_rc"); 
+        check_gpu_malloc((void**)&d_seq_rc[g], ref_len*sizeof(char), "seq_rc"); 
 
         rev_comp_string <<<MAX_BLOCKS, MAX_THREADS>>> (ref_len, d_ref_seq[g], d_seq_rc[g]);
     }
@@ -965,9 +966,9 @@ void ClearQuery(){
 
     for(int g = 0; g < NUM_DEVICES; g++){
 
-        check_cuda_setDevice(g, "ClearQuery");
+        check_gpu_setDevice(g, "ClearQuery");
 
-        check_cuda_free((void*)d_seq_rc[g], "d_seq_rc");
+        check_gpu_free((void*)d_seq_rc[g], "d_seq_rc");
     }
 }
 

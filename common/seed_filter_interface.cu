@@ -1,4 +1,5 @@
-#include "cuda_utils.h"
+#include "gpu.h"
+#include "gpu_utils.h"
 #include "parameters.h"
 #include "seed_filter_interface.h"
 #include "store_gpu.h"
@@ -85,18 +86,18 @@ void SendRefWriteRequest (char* seq, size_t start_addr, uint32_t len){
     
     for(int g = 0; g < NUM_DEVICES; g++){
 
-        check_cuda_setDevice(g, "SendRefWriteRequest");
+        check_gpu_setDevice(g, "SendRefWriteRequest");
 
         char* d_ref_seq_tmp;
-        check_cuda_malloc((void**)&d_ref_seq_tmp, len*sizeof(char), "tmp_ref_seq"); 
+        check_gpu_malloc((void**)&d_ref_seq_tmp, len*sizeof(char), "tmp_ref_seq"); 
 
-        check_cuda_memcpy((void*)d_ref_seq_tmp, (void*)(seq + start_addr), len*sizeof(char), cudaMemcpyHostToDevice, "ref_seq");
+        check_gpu_memcpy((void*)d_ref_seq_tmp, (void*)(seq + start_addr), len*sizeof(char), cudaMemcpyHostToDevice, "ref_seq");
 
-        check_cuda_malloc((void**)&d_ref_seq[g], len*sizeof(char), "ref_seq"); 
+        check_gpu_malloc((void**)&d_ref_seq[g], len*sizeof(char), "ref_seq"); 
 
         compress_string <<<MAX_BLOCKS, MAX_THREADS>>> (len, d_ref_seq_tmp, d_ref_seq[g]);
 
-        check_cuda_free((void*)d_ref_seq_tmp, "d_ref_seq_tmp");
+        check_gpu_free((void*)d_ref_seq_tmp, "d_ref_seq_tmp");
     }
 }
 
@@ -104,11 +105,11 @@ void ClearRef(){
 
     for(int g = 0; g < NUM_DEVICES; g++){
 
-        check_cuda_setDevice(g, "ClearRef");
+        check_gpu_setDevice(g, "ClearRef");
 
-        check_cuda_free((void*)d_ref_seq[g], "d_ref_seq");
-        check_cuda_free((void*)d_index_table[g], "d_index_table");
-        check_cuda_free((void*)d_pos_table[g], "d_pos_table");
+        check_gpu_free((void*)d_ref_seq[g], "d_ref_seq");
+        check_gpu_free((void*)d_index_table[g], "d_index_table");
+        check_gpu_free((void*)d_pos_table[g], "d_pos_table");
     }
 }
 

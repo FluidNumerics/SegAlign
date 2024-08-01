@@ -4,7 +4,7 @@ INSTALL_ROOT=${HOME}/software/segalign
 SEGALIGN_SRC=${HOME}/SegAlign
 
 module purge
-module load gcc/10.5.0 cmake/3.29.6 cuda/12.5.0
+module load gcc/10.5.0 cmake/3.29.6 rocm/6.1.2
 module load zlib/1.3.1 lastz/1.04.22 boost/1.85.0 intel-tbb/2020.3
 export PATH=${PATH}:${INSTALL_ROOT}/bin
 
@@ -25,14 +25,15 @@ if [ -z "$(command -v twoBitToFa)" ]; then
   mv twoBitToFa ${INSTALL_ROOT}/bin/
 fi
 
+##THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_HIP
 # SegAlign 
 rm -rf ${SEGALIGN_SRC}/build
 mkdir -p ${SEGALIGN_SRC}/build
 cd ${SEGALIGN_SRC}/build
-cmake -DCMAKE_BUILD_TYPE=Release \
+CXX=hipcc cmake -DCMAKE_BUILD_TYPE=Release \
       -DTBB_ROOT=${INTEL_TBB_ROOT} \
       -DBOOST_ROOT=${BOOST_ROOT} \
-      -DCMAKE_CUDA_ARCHITECTURES=70 \
+      -DCMAKE_HIP_ARCHITECTURES=gfx90a \
       -DCMAKE_INSTALL_PREFIX=${INSTALL_ROOT} \
       ..
 make VERBOSE=1

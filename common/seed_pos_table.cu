@@ -1,5 +1,6 @@
 #include "seed_filter_interface.h"
-#include "cuda_utils.h"
+#include "gpu.h"
+#include "gpu_utils.h"
 #include "tbb/parallel_sort.h"
 #include "ntcoding.h"
 #include "store_gpu.h"
@@ -18,7 +19,7 @@ void InclusivePrefixScan (uint32_t* data, uint32_t len) {
         available_gpus.pop_back();
         locker.unlock();
 
-        check_cuda_setDevice(g, "InclusivePrefixScan");
+        check_gpu_setDevice(g, "InclusivePrefixScan");
     }
 
     thrust::inclusive_scan(thrust::host, data, data + len, data); 
@@ -35,15 +36,15 @@ void SendSeedPosTable (uint32_t* index_table, uint32_t index_table_size, uint32_
 
     for(int g = 0; g < NUM_DEVICES; g++){
 
-        check_cuda_setDevice(g, "SendSeedPosTable");
+        check_gpu_setDevice(g, "SendSeedPosTable");
 
-        check_cuda_malloc((void**)&d_index_table[g], index_table_size*sizeof(uint32_t), "index_table"); 
+        check_gpu_malloc((void**)&d_index_table[g], index_table_size*sizeof(uint32_t), "index_table"); 
 
-        check_cuda_memcpy((void*)d_index_table[g], (void*)index_table, index_table_size*sizeof(uint32_t), cudaMemcpyHostToDevice, "index_table");
+        check_gpu_memcpy((void*)d_index_table[g], (void*)index_table, index_table_size*sizeof(uint32_t), cudaMemcpyHostToDevice, "index_table");
 
-        check_cuda_malloc((void**)&d_pos_table[g], num_index*sizeof(uint32_t), "pos_table"); 
+        check_gpu_malloc((void**)&d_pos_table[g], num_index*sizeof(uint32_t), "pos_table"); 
 
-        check_cuda_memcpy((void*)d_pos_table[g], (void*)pos_table, num_index*sizeof(uint32_t), cudaMemcpyHostToDevice, "pos_table");
+        check_gpu_memcpy((void*)d_pos_table[g], (void*)pos_table, num_index*sizeof(uint32_t), cudaMemcpyHostToDevice, "pos_table");
     }
 }
 
