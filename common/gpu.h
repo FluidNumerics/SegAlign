@@ -25,6 +25,10 @@ static void check(const hipError_t err, const char *const file, const int line)
   exit(err);
 }
 
+#define WARP_SIZE 64
+#define MAX_THREADS 1024 
+#define BLOCK_SIZE 128
+#define NUM_WARPS 2
 
 #define cudaMalloc hipMalloc
 #define cudaFree hipFree
@@ -59,7 +63,10 @@ static void check(const cudaError_t err, const char *const file, const int line)
   fflush(stderr);
   exit(err);
 }
-
+#define WARP_SIZE 32
+#define MAX_THREADS 1024 
+#define BLOCK_SIZE 128 
+#define NUM_WARPS 4
 
 #endif
 

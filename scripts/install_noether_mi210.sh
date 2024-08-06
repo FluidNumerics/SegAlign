@@ -2,6 +2,7 @@
 
 INSTALL_ROOT=${HOME}/software/segalign
 SEGALIGN_SRC=${HOME}/SegAlign
+BUILD_TYPE=Release
 
 module purge
 module load gcc/10.5.0 cmake/3.29.6 rocm/6.1.2
@@ -34,6 +35,7 @@ CXX=hipcc cmake -DCMAKE_BUILD_TYPE=Release \
       -DTBB_ROOT=${INTEL_TBB_ROOT} \
       -DBOOST_ROOT=${BOOST_ROOT} \
       -DCMAKE_HIP_ARCHITECTURES=gfx90a \
+      -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
       -DCMAKE_INSTALL_PREFIX=${INSTALL_ROOT} \
       ..
 make VERBOSE=1

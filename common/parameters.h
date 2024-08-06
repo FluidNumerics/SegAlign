@@ -13,6 +13,4 @@
 #define E_NT 7
 
 #define MAX_BLOCKS 1<<10
-#define MAX_THREADS 1024 
-#define BLOCK_SIZE 128 
-#define NUM_WARPS 4
+

@@ -5,11 +5,11 @@ file(GLOB COMMON_CU_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cu")
 file(GLOB COMMON_CPP_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../common/*.cpp")
 
 if(hip_FOUND)
-    set_source_files_properties(${COMMON_CU_SRC} PROPERTIES LANGUAGE HIP)
-    set_source_files_properties(${REPEAT_MASKER_CU_SRC} PROPERTIES LANGUAGE HIP)
+    set_source_files_properties(${COMMON_CU_SRC} PROPERTIES LANGUAGE CXX)
+    set_source_files_properties(${REPEAT_MASKER_CU_SRC} PROPERTIES LANGUAGE CXX)
 
     add_executable(segalign_repeat_masker ${COMMON_CU_SRC} ${COMMON_CPP_SRC} ${REPEAT_MASKER_CU_SRC} ${REPEAT_MASKER_CPP_SRC})
-    target_link_libraries(segalign_repeat_masker PRIVATE ${DEP_LIBS} hip::host roc::rocthrust)
+    target_link_libraries(segalign_repeat_masker PRIVATE ${DEP_LIBS} hip::device roc::rocthrust)
 
 else()
     add_executable(segalign_repeat_masker ${COMMON_CU_SRC} ${COMMON_CPP_SRC} ${REPEAT_MASKER_CU_SRC} ${REPEAT_MASKER_CPP_SRC})

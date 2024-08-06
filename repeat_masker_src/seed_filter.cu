@@ -200,7 +200,7 @@ void find_hits (const uint32_t* __restrict__  d_index_table, const uint32_t* __r
 
     int thread_id = threadIdx.x;
     int block_id = blockIdx.x;
-    int warp_size = warpSize;
+    int warp_size = WARP_SIZE;
     int lane_id = thread_id%warp_size;
     int warp_id = (thread_id-lane_id)/warp_size;
 
@@ -255,7 +255,7 @@ void find_hsps (const char* __restrict__  d_ref_seq, const char* __restrict__  d
     int thread_id = threadIdx.x;
     int block_id = blockIdx.x;
     int num_blocks = gridDim.x;
-    int warp_size = warpSize;
+    int warp_size = WARP_SIZE;
     int lane_id = thread_id%warp_size;
     int warp_id = (thread_id-lane_id)/warp_size;
 

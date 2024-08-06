@@ -22,10 +22,7 @@ find_package(hip)
 if(hip_FOUND)
     find_package(rocprim REQUIRED)
     find_package(rocthrust REQUIRED)
-    find_package(hipcub REQUIRED)
-    enable_language(HIP)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHIP_ENABLED")
-    set(CMAKE_HIP_FLAGS "${CMAKE_HIP_FLAGS} -DHIP_ENABLED")
 else()
     # If HIP is not found, then we enable the CUDA language
     # and check for the CUDA package
