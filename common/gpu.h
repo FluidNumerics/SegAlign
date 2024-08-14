@@ -12,10 +12,6 @@
 
 #include <hip/hip_runtime.h>
 
-#ifdef __HIPCC__
-#define __CUDACC__
-#endif
-
 __attribute__((unused))
 static void check(const hipError_t err, const char *const file, const int line)
 {
