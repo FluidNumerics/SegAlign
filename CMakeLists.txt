@@ -30,6 +30,9 @@ else()
     find_package(CUDA 9.0 REQUIRED)
 endif()
 
+set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
+set( CMAKE_CXX_FLAGS_DEBUG "-O0 -g" )
+
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O4 -std=c++11 -l c")
 
 # Dependencies
@@ -54,10 +57,5 @@ else()
   set(DEP_INCLUDES ${TBB_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${CUDA_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
 endif()
 
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 add_subdirectory(${CMAKE_SOURCE_DIR}/repeat_masker_src)

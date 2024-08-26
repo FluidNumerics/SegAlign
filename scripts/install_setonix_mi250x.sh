@@ -2,11 +2,11 @@
 
 INSTALL_ROOT=${MYSCRATCH}/software/segalign
 SEGALIGN_SRC=${MYSCRATCH}/SegAlign
-BUILD_TYPE=Debug
+BUILD_TYPE=Release
 
 source ${MYSCRATCH}/spack/share/spack/setup-env.sh
 spack env activate -d ${SEGALIGN_SRC}
-module load gcc/12.2.0
+module load gcc/11.2.0
 module load cmake/3.27.7
 module load rocm/5.7.3
 
@@ -34,8 +34,7 @@ fi
 rm -rf ${SEGALIGN_SRC}/build
 mkdir -p ${SEGALIGN_SRC}/build
 cd ${SEGALIGN_SRC}/build
-CXX=hipcc cmake -DCMAKE_BUILD_TYPE=Release \
-      -DTBB_ROOT=${INTEL_TBB_ROOT} \
+CXX=hipcc cmake -DTBB_ROOT=${INTEL_TBB_ROOT} \
       -DBOOST_ROOT=${BOOST_ROOT} \
       -DCMAKE_HIP_ARCHITECTURES=gfx90a \
       -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \

@@ -1,11 +1,10 @@
 spack:
   view: ${MYSCRATCH}/software/segalign/
   specs:
-  - zlib@1.3.1 % gcc
-  - boost@1.85.0+program_options % gcc
-  - lastz@1.04.22 % gcc 
-  - intel-tbb@2020.3 % gcc 
-
+  - zlib@1.3.1 % gcc@11.2.0
+  - boost@1.85.0+program_options % gcc@11.2.0
+  - lastz@1.04.22 % gcc@11.2.0
+  - intel-tbb@2020.3 % gcc@11.2.0
   config:
     install_tree:
       root: ${MYSCRATCH}/opt/segalign

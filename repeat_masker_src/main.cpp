@@ -77,6 +77,7 @@ int main(int argc, char** argv){
         ("lastz_interval_size", po::value<uint32_t>(&cfg.lastz_interval_size)->default_value(DEFAULT_LASTZ_INTERVAL), "LASTZ interval for ydrop - change only if you are a developer")
         ("seq_block_size", po::value<uint32_t>(&cfg.seq_block_size)->default_value(DEFAULT_SEQ_BLOCK_SIZE), "LASTZ interval for ydrop - change only if you are a developer")
         ("num_gpu", po::value<int>(&cfg.num_gpu)->default_value(-1), "Specify number of GPUs to use - -1 if all the GPUs should be used")
+        ("num_threads", po::value<int>(&cfg.num_threads)->default_value(2), "Specify number of threads to use - -1 if 1 thread per core is desired.")
         ("debug", po::bool_switch(&cfg.debug)->default_value(false), "print debug messages")
         ("version", "print version")
         ("help", "Print help messages");
@@ -231,7 +232,12 @@ int main(int argc, char** argv){
         cfg.sub_mat[E_NT*NUC+E_NT] = -10*cfg.xdrop;
     }
 
-    cfg.num_threads = tbb::task_scheduler_init::default_num_threads();
+    // (8/26/2024  joe@fluidnumerics.com)
+    // I've added num_threads as a command line option that defaults to 2
+    // If the user sets it to -1, then the default_num_threads() function is
+    // invoked set the number of threads. Otherwise, the number of threads is
+    // set as desired from the user
+    cfg.num_threads = (cfg.num_threads == -1) ? tbb::task_scheduler_init::default_num_threads() : cfg.num_threads;
     cfg.num_threads = (cfg.num_threads == 1) ? 2 : cfg.num_threads;
     tbb::task_scheduler_init init(cfg.num_threads);
 
